@@ -1,0 +1,33 @@
+  - name: Install kvm hypervisor
+    apt:
+      name={{item}}
+      state=present
+    with_items:
+      - qemu-kvm
+      - libvirt-bin
+      - bridge-utils
+      - virt-manager
+    tags:
+      - vmhost
+      - kvm
+
+  - name: Add user to libvirtd group
+    user:
+      name={{current_user}}
+      groups=libvirtd
+      append=yes
+    tags:
+      - vmhost
+      - kvm
+
+  - name: Define volume pool
+    virt_pool:
+      name=vm_pool
+      command=define
+      xml='{{ lookup("template", "vm_pool.j2") }}'
+
+  - name: Autostart vm volume pool
+    virt_pool:
+      name=vm_pool
+      state=active
+      autostart=yes

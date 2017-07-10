@@ -1,0 +1,15 @@
+  - name: Configure iptables NAT (IPv4)
+    template:
+      src=iptables_nat.j2
+      dest=/etc/iptables/host_nat_{{ item.interface }}.rules
+      mode=0700
+    with_items: "{{if_nat_through}}"
+
+  - name:  Add NAT to iptables service
+    lineinfile:
+      line="/etc/iptables/host_nat_{{item.interface}}.rules"
+      dest=/etc/iptables/iptables
+      state=present
+    with_items: "{{if_nat_through}}"
+    notify:
+      - restart iptables

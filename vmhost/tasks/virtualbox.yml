@@ -1,0 +1,69 @@
+  - name: Add virtualbox repo
+    apt_repository:
+      repo='deb http://download.virtualbox.org/virtualbox/debian {{ansible_distribution_release}} contrib non-free'
+    register: result_repo_virtualbox
+    notify: update apt
+    tags:
+      - vmhost
+      - virtualbox
+
+  - name: Add virtualbox repo signing key
+    apt_key:
+      url=http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc
+      state=present
+    when: result_repo_virtualbox | changed
+    notify:
+         - update apt
+    tags:
+      - vmhost
+      - virtualbox
+
+  - name: Install virtualbox and dependencies
+    apt:
+      name={{item}}
+      state=present
+    with_items:
+      - dkms
+      - virtualbox-4.3
+    tags:
+      - vmhost
+      - virtualbox
+
+  - name: Download VirtualBox Extension Pack Script
+    sudo: yes
+    sudo_user: "{{ current_user }}"
+    get_url:
+      url=https://github.com/huntedcodes/vagrant-dev/raw/master/shell/get_vbox_ext.sh
+      dest=./get_vbox_ext.sh
+    tags:
+      - vmhost
+      - virtualbox
+
+  - name: Install VirtualBox Extension Pack
+    sudo: yes
+    sudo_user: "{{ current_user }}"
+    script: ./get_vbox_ext.sh
+    register: result_vbox_ext
+    changed_when: "result_vbox_ext.rc == 0"
+    failed_when: "result_vbox_ext.rc == 1"
+    tags:
+      - vmhost
+      - virtualbox
+
+  - shell: cat /etc/group
+    register: group_contents
+    tags:
+      - vmhost
+      - virtualbox
+
+  - name: Add user to vboxusers group
+    user:
+      name="{{current_user}}"
+      state=present
+      groups=vboxusers
+      append=yes
+    when: group_contents.stdout.find('vboxsf') != -1
+    tags:
+      - vmhost
+      - virtualbox
+

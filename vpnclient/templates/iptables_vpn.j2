@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# VPN iptables ruleset.
+# Allow UDP 1194 VPN on specified interface.
+#
+
+IPTABLES="sudo /sbin/iptables"
+
+IF_EXT={{item.interface}}
+
+################################################################################
+
+# VPN Connection Over Interface
+$IPTABLES -t filter -I INPUT  -i $IF_EXT -p udp --sport 1194 -j ACCEPT
+$IPTABLES -t filter -I OUTPUT -o $IF_EXT -p udp --dport 1194 -j ACCEPT
+

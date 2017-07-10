@@ -1,0 +1,24 @@
+#!/bin/sh
+
+#
+# VPN server connections 
+#
+
+
+IPTABLES="sudo /sbin/iptables"
+
+# Interfaces
+IF_INT={{item.0.interface}}
+VPN_IP=10.0.{{item.0.server_subnet}}.{{item.0.server_host}}
+VPN_PORT={{item.0.server_port}}
+IF_EXT={{item.1}}
+
+################################################################################
+
+# Forward VPN tunnel to external
+$IPTABLES -t filter -I FORWARD -i $IF_INT -s $VPN_IP -o $IF_EXT -p tcp --sport $VPN_PORT -j ACCEPT
+$IPTABLES -t filter -I FORWARD -i $IF_INT -s $VPN_IP -o $IF_EXT -p udp --sport $VPN_PORT -j ACCEPT
+
+# Forward external to VPN tunnel
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $VPN_IP -p tcp --dport $VPN_PORT -j ACCEPT
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $VPN_IP -p udp --dport $VPN_PORT -j ACCEPT

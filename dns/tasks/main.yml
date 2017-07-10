@@ -1,0 +1,4 @@
+  # Install and Configure
+  - include: dnscrypt.yml
+  - include: iptables.yml
+  - include: dnsmasq.yml

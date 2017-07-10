@@ -1,0 +1,25 @@
+#
+# iptables ruleset for general client communication.
+# Single external interface.
+# Allow outbound TCP and UDP.
+# Allow outgoing pings.
+# Explicitly allow DNS and NTP.
+# 
+
+IPTABLES="sudo /sbin/iptables"
+
+IF_CLIENT={{ item.interface }}
+
+################################################################################
+
+# Ethernet Input
+$IPTABLES -t filter -I INPUT -i $IF_CLIENT -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+$IPTABLES -t filter -I INPUT -i $IF_CLIENT -p udp -m state --state RELATED -j ACCEPT
+$IPTABLES -t filter -I INPUT -i $IF_CLIENT -p udp --sport 53 --dport 1024:65535 -j ACCEPT  # DNS
+$IPTABLES -t filter -I INPUT -i $IF_CLIENT -p udp --sport 123 --dport 1024:65535 -j ACCEPT # NTP
+$IPTABLES -t filter -I INPUT -i $IF_CLIENT -p icmp --icmp-type 0 -j ACCEPT # Ping response
+
+# Ethernet Output
+$IPTABLES -t filter -I OUTPUT -o $IF_CLIENT -p tcp --sport 1024:65535 -j ACCEPT #All unprivileged TCP
+$IPTABLES -t filter -I OUTPUT -o $IF_CLIENT -p udp --sport 1024:65535 -j ACCEPT #All unprivileged UDP
+$IPTABLES -t filter -I OUTPUT -o $IF_CLIENT -p icmp --icmp-type 8 -j ACCEPT # Ping request

@@ -1,0 +1,31 @@
+  - name: Add Java 8 PPA repo to aptitude source list
+    apt_repository: 
+      repo='ppa:webupd8team/java'
+    register: result_repo_java_oracle
+    notify:
+      - update apt
+    tags:
+      - dev
+      - java
+
+  - name: Auto-accept Oracle Java 8 agreement
+    debconf: 
+      name='oracle-java8-installer'
+      question='shared/accepted-oracle-license-v1-1'
+      vtype='select'
+      value='true'
+    tags:
+      - dev
+      - java
+
+  - name: Install Oracle Java 8 and defaults
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - oracle-java8-installer
+      - oracle-java8-set-default
+    tags:
+      - dev
+      - java
+

@@ -1,0 +1,30 @@
+  - name: Install keepass2 and dependencies
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - keepass2
+      - xdotool
+    tags:
+      - gui
+      - keepass
+
+  - name: Create keepass2 configuration directory
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    file:
+      path=/home/{{current_user}}/.config/KeePass
+      state=directory
+      mode=0700
+    tags:
+      - gui
+      - keepass
+
+  - name: Configure keepass2
+    template:
+      src=KeePass.config.xml.j2
+      dest=/home/{{current_user}}/.config/KeePass/KeePass.config.xml
+    tags:
+      - gui
+      - keepass
+

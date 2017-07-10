@@ -1,0 +1,55 @@
+  - name: Install python3 and pip3
+    apt: 
+      name={{ item }}
+      state=present
+    with_items:
+      - python3
+      - python3-pip
+      - python3-dev
+    tags:
+      - dev
+      - python3
+
+  - name: Install virtualenv and virtualenvwrapper
+    pip:
+      name={{ item }}
+      state=present
+      executable=pip3
+      virtualenv_site_packages=no
+    with_items:
+      - virtualenv
+      - virtualenvwrapper
+    tags:
+      - dev
+      - python3
+
+  - name: Configure virtualenv environment variables
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    lineinfile:
+      dest=~/.bashrc
+      regexp="{{ item.regexp }}"
+      line="{{ item.line }}"
+      create=yes
+      state=present
+    with_items:
+      - { regexp: '^export WORKON_HOME', line: 'export WORKON_HOME=$HOME/.virtualenvs' }
+      - { regexp: '^export PROJECT_HOME', line: 'export PROJECT_HOME=$HOME/{{current_user}}/data/workspace/' }
+      - { regexp: '^export VIRTUALENVWRAPPER_PYTHON=', line: 'export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3' }
+      - { regexp: 'source .+virtualenvwrapper.sh', line: 'source /usr/local/bin/virtualenvwrapper.sh' }
+    register: result_venv_var
+    when: ansible_env.SHELL == "/bin/bash"
+    when: python3_default is defined
+    tags:
+      - dev
+      - python3
+
+  - name: "Reload .bashrc for virtualenv variables"
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    shell: . /home/{{current_user}}/.bashrc
+    when: lookup('env','SHELL') == "/bin/bash" and result_venv_var|changed
+    tags:
+      - dev
+      - python3
+

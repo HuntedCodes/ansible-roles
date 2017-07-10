@@ -1,0 +1,79 @@
+  # Rules between host and VMs.
+  - name: Create VM net host iptables rules
+    template:
+      src=iptables_{{ item.type }}.j2
+      dest=/etc/iptables/host_{{ item.type }}_{{ item.interface }}.rules
+      mode=0700
+    with_items: "{{vm_nets}}"
+
+  - name: Add VM net host iptables rules to service
+    lineinfile:
+      dest=/etc/iptables/iptables
+      line="/etc/iptables/host_{{ item.type }}_{{ item.interface }}.rules"
+      state=present
+    with_items: "{{vm_nets}}"
+    notify:
+      - restart iptables
+
+  # General forwarding rules.
+  - name: Create VM net forwarding iptables rules
+    template:
+      src=iptables_forward_{{ item.0.type }}.j2
+      dest=/etc/iptables/forward_{{ item.0.type }}_{{ item.0.interface }}_{{ item.1 }}.rules
+      mode=0700
+    with_subelements:
+      - vm_nets
+      - forward
+
+  - name: Add VM net forwarding iptables rules to service
+    lineinfile:
+      dest=/etc/iptables/iptables
+      line="/etc/iptables/forward_{{ item.0.type }}_{{ item.0.interface }}_{{ item.1 }}.rules"
+      state=present
+    with_subelements:
+      - vm_nets
+      - forward
+    notify:
+      - restart iptables
+
+  # VPN server forwarding rules.
+  - name: Create VPN server forwarding iptables rules
+    template:
+      src=iptables_forward_vpnserver.j2
+      dest=/etc/iptables/forward_vpnserver_{{ item.0.interface }}_{{ item.1 }}.rules
+      mode=0700
+    with_subelements:
+      - vpn_gateways
+      - server_accept
+
+  - name: Add VPN server forwarding iptables rules to service
+    lineinfile:
+      dest=/etc/iptables/iptables
+      line=/etc/iptables/forward_vpnserver_{{ item.0.interface }}_{{ item.1 }}.rules
+      state=present
+    with_subelements:
+      - vpn_gateways
+      - server_accept
+    notify:
+      - restart iptables
+  
+  # VPN client forwarding rules.
+  - name: Create VPN client forwarding iptables rules
+    template:
+      src=iptables_forward_client.j2
+      dest=/etc/iptables/forward_vpnclient_{{ item.0.interface }}_{{ item.1 }}.rules
+      mode=0700
+    with_subelements:
+      - vpn_gateways
+      - forward
+
+  - name: Add VPN client forwarding iptables rules to service
+    lineinfile:
+      dest=/etc/iptables/iptables
+      line=/etc/iptables/forward_vpnclient_{{ item.0.interface }}_{{ item.1 }}.rules
+      state=present
+    with_subelements:
+      - vpn_gateways
+      - forward
+    notify:
+      - restart iptables

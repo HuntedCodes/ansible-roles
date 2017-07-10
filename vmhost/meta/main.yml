@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: linuxvars }
+  - { role: nat }

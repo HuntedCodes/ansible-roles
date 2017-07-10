@@ -1,0 +1,61 @@
+#!/bin/sh
+
+# Base ip6tables ruleset.
+# Single eth0 interface.
+# Deny all except for loopback.
+# Dropped packets logged to /var/log/kern.log
+# Log entries prefixed with [ip6tables]
+# 
+
+IPTABLES="sudo /sbin/ip6tables"
+
+# Interfaces
+IF_LO=lo
+IF_ETH=eth0
+
+# Logging
+LOGLIMIT="2/s"
+LOGLIMITBURST="10"
+
+################################################################################
+
+#Reset
+$IPTABLES -X LOGDROP
+
+#Log drop chain
+$IPTABLES -N LOGDROP
+$IPTABLES -A LOGDROP -p tcp -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[ip6tables] TCP LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -p udp -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[ip6tables] UDP LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -p icmp -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[ip6tables] ICMP LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[ip6tables] FRAGMENT LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -j DROP
+
+################################################################################
+
+#Loopback
+$IPTABLES -t filter -I INPUT -i $IF_LO -j ACCEPT
+$IPTABLES -t filter -I OUTPUT -o $IF_LO -j ACCEPT
+
+################################################################################
+
+#Ethernet Input
+
+#Ethernet Output
+
+################################################################################
+
+
+#Log and drop packets that made it
+#Credit: http://www.linuxquestions.org/questions/linux-security-4/iptables-logging-385165/
+$IPTABLES -A INPUT -p tcp -j LOGDROP
+$IPTABLES -A INPUT -p udp -j LOGDROP
+$IPTABLES -A INPUT -p icmp -j LOGDROP
+$IPTABLES -A OUTPUT -p tcp -j LOGDROP
+$IPTABLES -A OUTPUT -p udp -j LOGDROP
+$IPTABLES -A OUTPUT -p icmp -j LOGDROP
+$IPTABLES -A FORWARD -p tcp -j LOGDROP
+$IPTABLES -A FORWARD -p udp -j LOGDROP
+$IPTABLES -A FORWARD -p icmp -j LOGDROP
+
+################################################################################
+

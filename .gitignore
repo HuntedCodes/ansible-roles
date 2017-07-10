@@ -1,0 +1,8 @@
+*.*~
+*.swp
+.idea
+.un~
+__pycache__
+*.vbox-extpack
+*.sh
+Dockerfile

@@ -1,0 +1,13 @@
+- name: update apt
+  sudo: yes
+  apt: update_cache=yes
+  tags:
+    - base
+    - apt
+
+- name: upgrade apt
+  sudo: yes
+  apt: upgrade=yes
+  tags:
+    - base
+    - apt

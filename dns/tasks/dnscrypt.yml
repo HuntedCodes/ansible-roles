@@ -1,0 +1,154 @@
+  - name: Install dnscrypt dependencies
+    apt:
+      name={{item}}
+      state=present
+    with_items:
+      - gcc
+      - libsodium-dev
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Add unprivileged dnscrypt user
+    user:
+      name=dnscrypt
+      home=/run/dnscrypt
+      shell=/bin/false
+      state=present
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Create dnscrypt configuration directories
+    sudo: yes
+    file:
+      path={{item}}
+      state=directory
+      mode=0744
+    with_items:
+      - /etc/dnscrypt
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Create dnscrypt build directory
+    file:
+      path=/usr/local/src/dnscrypt
+      state=directory
+      owner={{current_user}}
+      group={{current_user}}
+      mode=0744
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Download latest dnscrypt resolver list
+    get_url:
+      url=http://download.dnscrypt.org/dnscrypt-proxy/dnscrypt-resolvers.csv
+      dest=/etc/dnscrypt/
+      mode=0744
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Get sha256 for latest remote dnscrypt tarball
+    shell: dig +dnssec TXT LATEST.tar.gz.download.dnscrypt.org | grep "IN TXT" | grep -Eo '([a-zA-Z0-9]){64}'
+    register: remote_sha256
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Get sha256 of existing local tarball
+    shell: sha256sum /usr/local/src/dnscrypt/LATEST.tar.gz | cut -f1 -d' '
+    register: local_sha256
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Download latest dnscrypt tarball
+    get_url:
+      url=http://download.dnscrypt.org/dnscrypt-proxy/LATEST.tar.gz
+      dest=/usr/local/src/dnscrypt/
+    when: remote_sha256.stdout != local_sha256.stdout
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Get sha256 of downloaded dnscrypt tarball
+    shell: sha256sum /usr/local/src/dnscrypt/LATEST.tar.gz | cut -f1 -d' '
+    register: download_sha256
+    when: remote_sha256.stdout != local_sha256.stdout
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Fail if sha256 hashes don't match
+    fail: msg="{{remote_sha256.stdout}} is not {{download_sha256.stdout}}"
+    when: (remote_sha256.stdout != local_sha256.stdout) and (remote_sha256.stdout != download_sha256.stdout)
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Unpack dnscrypt tarball
+    unarchive:
+      src=/usr/local/src/dnscrypt/LATEST.tar.gz
+      dest=/usr/local/src/dnscrypt/
+      owner={{current_user}}
+      group={{current_user}}
+      mode=0755
+    when: remote_sha256.stdout != local_sha256.stdout
+    tags:
+      - dns
+      - dnscrypt
+
+  - name : Get dnscrypt version
+    shell: ls /usr/local/src/dnscrypt/ | grep dnscrypt | cut -f3 -d'-'
+    register: dnscrypt_version
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Configure and compile dnscrypt
+    shell: ./configure && make -j2
+    args:
+      chdir: /usr/local/src/dnscrypt/dnscrypt-proxy-{{dnscrypt_version.stdout}}/
+    when: remote_sha256.stdout != local_sha256.stdout
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Install and clean dnscrypt
+    shell: make install; make clean
+    args:
+      chdir: /usr/local/src/dnscrypt/dnscrypt-proxy-{{dnscrypt_version.stdout}}/
+    when: remote_sha256.stdout != local_sha256.stdout
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Add dnscrypt services
+    template:
+      src={{ item.src }}
+      dest={{ item.dest }}
+      mode=0755
+    with_items:
+      - { src: 'dnscrypt.service.j2', dest: '/etc/systemd/system/dnscrypt.service' }
+      - { src: 'dnscrypt-vpn.service.j2', dest: '/etc/systemd/system/dnscrypt-vpn.service' }
+    notify:
+      - reload systemd daemon
+    tags:
+      - dns
+      - dnscrypt
+
+  - name: Start dnscrypt services
+    service:
+      name={{item}}
+      state=started
+      enabled=yes
+    with_items:
+      - dnscrypt
+      - dnscrypt-vpn
+    tags:
+      - dns
+      - dnscrypt
+

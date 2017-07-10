@@ -1,0 +1,16 @@
+[Unit]
+Description=iptables
+Requires=network-pre.target
+Before=network-pre.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+NonBlocking=true
+Restart=always
+RestartSec=10
+ExecStart=/etc/iptables/iptables
+ExecReload=/etc/iptables/iptables
+ExecStop=/sbin/iptables -t filter -F; /sbin/iptables -t nat -F

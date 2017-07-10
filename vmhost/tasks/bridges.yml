@@ -1,0 +1,42 @@
+  - name: Install bridge utilities
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - bridge-utils
+    tags:
+      - vmhost
+      - bridges
+
+  - name: Add bridge interface devices 
+    template:
+            src="vmbridge-netdev.j2"
+      dest="/etc/systemd/network/{{item.interface}}.netdev"
+      mode=0644
+    with_items: "{{vm_nets}}"
+    notify: restart networking
+    register: result
+    tags:
+      - vmhost
+      - bridges
+
+  - name: Add bridge interface network configs
+    template:
+            src="vmbridge-network.j2"
+      dest="/etc/systemd/network/{{item.interface}}.network"
+      mode=0644
+    with_items: "{{vm_nets}}"
+    notify: restart networking
+    register: result
+    tags:
+      - vmhost
+      - bridges
+
+  - name: Enable the systemd networkd service
+    service:
+      name=systemd-networkd.service
+      state=started
+      enabled=yes
+    tags:
+      - vmhost
+      - bridges

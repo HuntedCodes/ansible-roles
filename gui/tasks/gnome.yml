@@ -1,0 +1,9 @@
+  - name: Install Gnome Session Flashback (MetaCity)
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - gnome-session-flashback
+    tags:
+      - gui
+      - gnome

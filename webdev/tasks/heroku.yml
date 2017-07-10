@@ -1,0 +1,7 @@
+  - name: Check for Heroku Toolbelt
+    stat: path=/usr/local/heroku/bin/heroku
+    register: toolbelt
+
+  - name: Install Heroku Toolbelt
+    shell: wget -O - https://toolbelt.heroku.com/install-ubuntu.sh | sh
+    when: toolbelt.stat.exists == False

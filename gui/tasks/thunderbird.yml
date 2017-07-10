@@ -1,0 +1,11 @@
+  - name: Install thunderbird and dependencies
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - thunderbird
+      - enigmail
+    tags:
+      - gui
+      - thunderbird
+

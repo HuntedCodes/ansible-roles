@@ -1,0 +1,14 @@
+  - name: Adding multiverse apt repository
+    apt_repository: repo="{{item}}" state=present
+    register: add_repo_multiverse
+    with_items:
+      - 'deb http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}} multiverse'
+      - 'deb-src http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}} multiverse'
+      - 'deb http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}}-updates multiverse'
+      - 'deb-src http://archive.ubuntu.com/ubuntu {{ansible_distribution_release}}-updates multiverse'
+    notify:
+      - update apt
+    tags:
+      - repo
+      - apt
+      - multiverse

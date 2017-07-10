@@ -1,0 +1,9 @@
+# Configures OpenVPN server certificate
+# Assumes easy-rsa has been copied to /etc/openvpn/easy-rsa
+
+#!/bin/sh
+
+WD=/etc/openvpn/easy-rsa/
+cd $WD
+. $WD/vars
+$WD/build-key-server --batch {{vpn_ca.name}}

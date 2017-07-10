@@ -1,0 +1,126 @@
+  - name: Install certificate authority packages
+    apt: name={{item}} state=present
+    with_items:
+      - easy-rsa
+    register: easyrsa
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Copy easy-rsa folder
+    copy:
+      src=/usr/share/easy-rsa
+      dest=/etc/openvpn/
+    when: easyrsa | changed
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Configure easy rsa 
+    template:
+      src=easyrsa_vars.j2
+      dest=/etc/openvpn/easy-rsa/vars
+      owner=root
+      group=root
+      mode=0644
+    register: easyrsa_config
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Copy setup scripts 
+    template:
+      src={{item}}.j2
+      dest=/etc/openvpn/easy-rsa/
+      mode=0744
+    with_items:
+      - setup_ca.sh
+      - setup_server.sh
+      - setup_dh.sh
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Make easy-rsa scripts executable
+    shell: chdir=/etc/openvpn/easy-rsa/ executable=/bin/bash {{item}}
+    with_items:
+        - chmod 744 $(grep -lr "#!/bin/" /etc/openvpn/easy-rsa/)
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Check if CA certificate exists
+    stat: path=/etc/openvpn/easy-rsa/keys/ca.crt
+    register: ca_cert
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Check if server key exists
+    stat: path=/etc/openvpn/easy-rsa/keys/{{vpn_ca.name}}.key
+    register: server_key
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Check if Diffie Hellman exists
+    stat: path=/etc/openvpn/easy-rsa/keys/dh2048.pem
+    register: dh2048
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Generate the CA
+    shell: chdir=/etc/openvpn/easy-rsa/ executable=/bin/bash {{item}}
+    with_items:
+      - /etc/openvpn/easy-rsa/setup_ca.sh 
+    when: "(easyrsa_config|changed) 
+        or (not ca_cert.stat.exists)"
+    register: ca_build
+    tags:
+      - vpnserver
+      - ca
+        
+  - name: Generate the server key and certificate 
+    shell: chdir=/etc/openvpn/easy-rsa/ executable=/bin/bash {{item}}
+    with_items:
+      - /etc/openvpn/easy-rsa/setup_server.sh 
+    when: "(easyrsa_config|changed) 
+        or (ca_build|changed)
+        or (not server_key.stat.exists)"
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Generate the Diffie Hellman
+    shell: chdir=/etc/openvpn/easy-rsa/ executable=/bin/bash {{item}}
+    with_items:
+      - /etc/openvpn/easy-rsa/setup_dh.sh 
+    when: "(easyrsa_config|changed) 
+        or (ca_build|changed)
+        or (not dh2048.stat.exists)"
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Copy generated certificates and keys
+    copy:
+      src={{item}}
+      dest=/etc/openvpn/
+    with_items:
+      - /etc/openvpn/easy-rsa/keys/ca.crt
+      - /etc/openvpn/easy-rsa/keys/dh2048.pem
+      - /etc/openvpn/easy-rsa/keys/{{vpn_ca.name}}.crt
+      - /etc/openvpn/easy-rsa/keys/{{vpn_ca.name}}.key
+    tags:
+      - vpnserver
+      - ca
+
+  - name: Copy client certificate generator
+    template:
+      src=client-gen.sh.j2
+      dest=/etc/openvpn/{{vpn_ca.name}}-certgen.sh
+      mode=0700
+    tags:
+      - vpnserver
+      - ca

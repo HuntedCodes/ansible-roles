@@ -1,0 +1,28 @@
+  - name: Install GNU toolchain and related tools
+    apt:
+      name={{item}}
+      state=present
+    with_items:
+      - binutils
+      - gcc
+      - gcc-4.9-multilib
+      - gdb
+      - nasm
+      - make
+      - cmake
+    tags:
+      - dev
+      - c
+
+  - name: Install C libraries
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - libssl-dev
+      - libxslt-dev
+      - libxml2-dev
+    tags:
+      - dev
+      - c
+

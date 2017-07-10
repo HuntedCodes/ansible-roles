@@ -1,0 +1,28 @@
+#!/bin/sh
+
+#
+# VM host routing from services to external.
+# Allow updating and diagnostic pings.
+# Forwarding of service ports must be added individually.
+#
+
+
+IPTABLES="sudo /sbin/iptables"
+
+# Interfaces
+IF_INT={{item.0.interface}}
+IF_EXT={{item.1}}
+SERVICE_NET=10.0.{{item.0.subnet}}.0/24
+
+################################################################################
+
+# Forward Services to External
+$IPTABLES -t filter -I FORWARD -i $IF_INT -o $IF_EXT -s $SERVICE_NET -p tcp --sport 1024:65535 -d us.archive.ubuntu.com --dport 80 -j ACCEPT # HTTP (updates)
+$IPTABLES -t filter -I FORWARD -i $IF_INT -o $IF_EXT -s $SERVICE_NET -p tcp --sport 1024:65535 -d github.com --dport 443 -j ACCEPT # HTTPS
+$IPTABLES -t filter -I FORWARD -i $IF_INT -o $IF_EXT -s $SERVICE_NET -p udp --sport 1024:65535 --dport 123 -j ACCEPT # NTP
+$IPTABLES -t filter -I FORWARD -i $IF_INT -o $IF_EXT -s $SERVICE_NET -p icmp -d 8.8.8.8 --icmp-type 8 -j ACCEPT # Ping request
+
+# Forward External to Services
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $SERVICE_NET -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $SERVICE_NET -p udp --sport 123 --dport 1024:65535 -j ACCEPT # NTP
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $SERVICE_NET -p icmp -s 8.8.8.8 --icmp-type 0 -j ACCEPT # Ping response

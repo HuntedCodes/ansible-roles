@@ -1,0 +1,33 @@
+  - name: Install postgres
+    apt:
+      name={{ item }}
+      state=present
+    with_items:
+      - postgresql
+      - postgresql-server-dev-all
+      - libpq-dev
+    register: result_install_postgres
+    tags:
+      - db
+      - postgres
+
+  - name: Install postgres python bindings
+    pip:
+        name=psycopg2
+        state=present
+    tags:
+      - db
+      - postgres
+      
+  - name: Create postgres user database
+    sudo: yes
+    sudo_user: "{{ current_user }}"
+    postgresql_db:
+        name={{ current_user }}
+        state=present
+        owner={{ current_user }}
+        login_user={{ current_user }}
+    tags:
+      - db
+      - postgres
+

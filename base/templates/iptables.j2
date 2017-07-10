@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Main iptables script.
+# Default deny.
+# Dropped packets logged to /var/log/kern.log
+# Log entries prefixed with [iptables]
+# 
+
+IPTABLES='sudo /sbin/iptables'
+# Policy
+$IPTABLES -P INPUT DROP
+$IPTABLES -P FORWARD DROP
+$IPTABLES -P OUTPUT DROP
+# Refresh
+$IPTABLES -t filter -F
+$IPTABLES -t nat -F
+# Rules

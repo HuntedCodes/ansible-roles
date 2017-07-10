@@ -1,0 +1,96 @@
+  - name: Create ip6tables directories
+    sudo: yes
+    file:
+      path="{{item}}"
+      state=directory
+      mode=0700
+    with_items:
+      - /etc/ip6tables
+    tags:
+      - base
+      - ip6tables
+
+  - name: Check main ip6tables script (IPv6)
+    stat: path=/etc/ip6tables/ip6tables
+    register: ip6tables_service
+    tags:
+      - base
+      - ip6tables
+
+  - name: Create main ip6tables script (IPv6)
+    file:
+      path=/etc/ip6tables/ip6tables
+      owner=root
+      group=root
+      mode=0700
+      state=touch
+    when: ip6tables_service.stat.exists == False
+    tags:
+      - base
+      - ip6tables
+
+  - name: Configure main ip6tables script (IPv6)
+    lineinfile:
+      line="{{item}}"
+      dest=/etc/ip6tables/ip6tables
+      state=present
+    with_items:
+      - "#!/bin/sh"
+      - "IPTABLES='sudo /sbin/ip6tables'"
+      - "# Policy"
+      - "$IPTABLES -P INPUT DROP"
+      - "$IPTABLES -P FORWARD DROP"
+      - "$IPTABLES -P OUTPUT DROP"
+      - "# Refresh"
+      - "$IPTABLES -t filter -F"
+      - "$IPTABLES -t nat -F"
+      - "# Rules"
+    register: result
+    tags:
+      - base
+      - ip6tables
+
+  - name: Create ip6tables base ruleset
+    template:
+      src=ip6tables_base.j2
+      dest=/etc/ip6tables/base.rules
+      mode=0700
+    tags:
+      - base
+      - ip6tables
+
+  - name: Add ip6tables base ruleset to main script (IPv6)
+    lineinfile:
+      line="{{item}}"
+      dest=/etc/ip6tables/ip6tables
+      state=present
+    with_items:
+      - "/etc/ip6tables/base.rules"
+    register: result
+    tags:
+      - base
+      - ip6tables
+
+  - name: Add ip6tables services
+    template:
+      src={{ item.src }}
+      dest={{ item.dest }}
+      mode=0755
+    with_items:
+      - { src: 'ip6tables.service.j2', dest: '/etc/systemd/system/ip6tables.service' }
+    notify:
+      - reload systemd daemon
+    tags:
+      - base
+      - ip6tables
+
+  - name: Start ip6tables services
+    service:
+      name={{item}}
+      state=started
+      enabled=yes
+    with_items:
+      - ip6tables
+    tags:
+      - base
+      - ip6tables

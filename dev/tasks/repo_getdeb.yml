@@ -1,0 +1,17 @@
+  - name: Add GetDeb repo to aptitude source list
+    apt_repository: repo='deb http://archive.getdeb.net/ubuntu trusty-getdeb apps' state=present
+    register: add_repo_getdeb
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    tags:
+      - dev
+      - getdeb
+
+  - name: Add GetDeb apt-key
+    apt_key: url=http://archive.getdeb.net/getdeb-archive.key state=present
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    when: add_repo_getdeb | changed
+    notify:
+      - update apt
+    tags:
+      - dev
+      - getdeb

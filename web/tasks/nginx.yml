@@ -1,0 +1,45 @@
+  - name: Add nginx apt repository
+    apt_repository: 
+      repo="{{item}}"
+      state=present
+    with_items:
+      - 'deb http://nginx.org/packages/ubuntu/ {{ansible_distribution_release}} nginx'
+      - 'deb-src http://nginx.org/packages/ubuntu/ {{ansible_distribution_release}} nginx'
+    register: add_repo_nginx
+    notify:
+      - update apt
+    tags:
+      - web
+      - nginx
+
+  - name: Add nginx apt-key
+    apt_key: 
+      url=http://nginx.org/keys/nginx_signing.key 
+      state=present
+    when: add_repo_nginx | changed
+    notify:
+      - update apt
+    tags:
+      - web
+      - nginx
+
+  - name: Update apt
+    sudo: yes
+    apt: 
+      update_cache=yes
+    when: add_repo_nginx | changed
+    tags:
+      - web
+      - nginx
+
+  - name: Install nginx and dependencies
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - libpcre3
+      - libpcre3-dev
+      - nginx
+    tags:
+      - web
+      - nginx

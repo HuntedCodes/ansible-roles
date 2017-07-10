@@ -1,0 +1,24 @@
+  - name: Install network analysis tools from aptitude
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - tcpdump
+      - nmap
+      - hping3
+    tags:
+      - analysis
+      - network
+
+  - name: Install network analysis tools from pip
+    pip:
+      name={{item}}
+      state=present
+      executable=/usr/local/bin/pip2.7
+    with_items:
+      - speedtest-cli
+      - scapy
+    tags:
+      - analysis
+      - network
+

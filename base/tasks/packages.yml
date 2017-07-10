@@ -1,0 +1,16 @@
+  - name: Install base tools
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - iptables
+      - curl
+      - git
+      - openssh-client
+      - python-pip
+      - python2.7-dev
+      - secure-delete
+      - tmux
+    tags:
+      - base
+      - packages

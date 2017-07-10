@@ -1,0 +1,8 @@
+  - name: Add mirror script to cron
+    template:
+      src=mirror.j2
+      dest=/etc/cron.daily/mirror
+      mode=0700
+    tags:
+      - mirror
+

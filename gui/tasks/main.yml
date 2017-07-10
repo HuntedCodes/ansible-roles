@@ -1,0 +1,9 @@
+  # Install and Configure
+  - include: gnome.yml
+  - include: openvpn-netmgr.yml
+  - include: keepass2.yml
+  - include: chromium.yml
+  - include: firefox.yml
+  - include: thunderbird.yml
+  - include: wireshark.yml
+

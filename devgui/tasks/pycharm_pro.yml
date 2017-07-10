@@ -1,0 +1,78 @@
+  - name: Create PyCharm working directory
+    file:
+      path=/usr/local/src/pycharm
+      state=directory
+      mode=0755
+      owner={{current_user}}
+      group={{current_user}}
+    tags:
+      - devgui
+      - pycharm
+
+  - name: Check if PyCharm Professional is installed
+    stat: 
+       path=/usr/local/src/pycharm/pycharm-{{pycharm_version}}/bin/pycharm.sh
+    register: verify_pycharm_pro
+    tags:
+      - devgui
+      - pycharm
+
+  - name: Get PyCharm Professional sha256
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    shell: wget -O - https://download.jetbrains.com/python/pycharm-professional-{{pycharm_version}}.tar.gz.sha256 | grep -Eo "[a-zA-Z0-9]{64}"
+    register: pycharm_sha256
+    when: verify_pycharm_pro.stat.exists == False
+    tags:
+      - devgui
+      - pycharm
+
+    #https://www.jetbrains.com/pycharm/download/download_thanks.jsp
+  - name: Download PyCharm Professional
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    get_url:
+      url=https://download.jetbrains.com/python/pycharm-professional-"{{pycharm_version}}".tar.gz
+      dest=/usr/local/src/pycharm/pycharm-professional-"{{pycharm_version}}".tar.gz
+      sha256sum="{{pycharm_sha256.stdout}}"
+    when: verify_pycharm_pro.stat.exists == False
+    tags:
+      - devgui
+      - pycharm
+
+  - name: Unpack PyCharm Professional to /usr/local/src/pycharm
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    unarchive:
+      src=/usr/local/src/pycharm/pycharm-professional-{{pycharm_version}}.tar.gz
+      dest=/usr/local/src/pycharm
+      owner="{{current_user}}"
+      group="{{current_user}}"
+    when: verify_pycharm_pro.stat.exists == False
+    tags:
+      - devgui
+      - pycharm
+
+  - name: Give PyCharm files to user
+    sudo: yes
+    file:
+      path=/usr/local/src/pycharm
+      owner="{{current_user}}"
+      group="{{current_user}}"
+      recurse=yes
+      state=directory
+    tags:
+      - devgui
+      - pycharm
+
+  - name: Set PyCharm Professional link in /usr/local/bin/pycharm
+    file:
+      src=/usr/local/src/pycharm/pycharm-{{pycharm_version}}/bin/pycharm.sh
+      dest=/usr/local/bin/pycharm
+      owner="{{current_user}}"
+      group="{{current_user}}"
+      state=link
+    tags:
+      - devgui
+      - pycharm
+

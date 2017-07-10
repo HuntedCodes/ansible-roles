@@ -1,0 +1,10 @@
+auto {{item.interface}}
+iface {{item.interface}} inet static
+  pre-up brctl addbr {{item.interface}}
+  post-down ip addr flush dev {{item.interface}}
+  post-down brctl delbr {{item.interface}}
+  address 10.0.{{item.subnet}}.1
+  network 10.0.{{item.subnet}}.0
+  broadcast 10.0.{{item.subnet}}.255
+  netmask 255.255.255.0
+

@@ -1,0 +1,16 @@
+[Unit]
+Description=ip6tables
+Requires=network-pre.target
+Before=network-pre.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+NonBlocking=true
+Restart=always
+RestartSec=10
+ExecStart=/etc/ip6tables/ip6tables
+ExecReload=/etc/ip6tables/ip6tables
+ExecStop=/sbin/ip6tables -t filter -F; /sbin/ip6tables -t nat -F

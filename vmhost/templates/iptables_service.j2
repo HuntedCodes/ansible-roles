@@ -1,0 +1,29 @@
+#!/bin/sh
+
+#
+# Host routing between VM service network.
+#
+
+
+IPTABLES="sudo /sbin/iptables"
+
+# Interfaces
+IF_VM_SERVICES={{item.interface}}
+SERVICE_NET=10.0.{{item.subnet}}.0/24
+
+################################################################################
+
+# Services to Host
+$IPTABLES -t filter -I INPUT -i $IF_VM_SERVICES -s $SERVICE_NET -p tcp --sport 22 -j ACCEPT # SSH
+$IPTABLES -t filter -I INPUT -i $IF_VM_SERVICES -s $SERVICE_NET -p udp --dport 53 -j ACCEPT # DNS request
+$IPTABLES -t filter -I INPUT -i $IF_VM_SERVICES -p udp --dport 67 -j ACCEPT # DHCP request
+$IPTABLES -t filter -I INPUT -i $IF_VM_SERVICES -s $SERVICE_NET -p icmp --icmp-type 8 -j ACCEPT # Ping request
+$IPTABLES -t filter -I INPUT -i $IF_VM_SERVICES -s $SERVICE_NET -p icmp --icmp-type 0 -j ACCEPT # Ping response
+
+# Host to Services
+$IPTABLES -t filter -I OUTPUT -o $IF_VM_SERVICES -d $SERVICE_NET -p tcp --dport 22 -j ACCEPT # SSH
+$IPTABLES -t filter -I OUTPUT -o $IF_VM_SERVICES -d $SERVICE_NET -p udp --sport 53 -j ACCEPT # DNS response
+$IPTABLES -t filter -I OUTPUT -o $IF_VM_SERVICES -p udp --sport 67 -j ACCEPT # DHCP response
+$IPTABLES -t filter -I OUTPUT -o $IF_VM_SERVICES -d $SERVICE_NET -p icmp --icmp-type 8 -j ACCEPT # Ping request
+$IPTABLES -t filter -I OUTPUT -o $IF_VM_SERVICES -d $SERVICE_NET -p icmp --icmp-type 0 -j ACCEPT # Ping response
+

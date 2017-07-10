@@ -1,0 +1,36 @@
+  - name: Get dnscrypt resolver IPv4 address
+    shell: grep "^{{dnscrypt_regular}}," /etc/dnscrypt/dnscrypt-resolvers.csv | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"
+    register: regular_resolver_ip
+    tags:
+      - dns
+      - iptables
+
+  - name: Get dnscrypt VPN resolver IPv4 address
+    shell: grep "^{{dnscrypt_vpn}}," /etc/dnscrypt/dnscrypt-resolvers.csv | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"
+    register: vpn_resolver_ip
+    tags:
+      - dns
+      - iptables
+
+  - name: Configure iptables dnscrypt (IPv4)
+    template:
+      src=iptables_dnscrypt.j2
+      dest=/etc/iptables/dnscrypt.rules
+      mode=0700
+    notify:
+      - restart iptables
+    tags:
+      - dns
+      - iptables
+
+  - name: Add dnscrypt to iptables service
+    lineinfile:
+      dest=/etc/iptables/iptables
+      line="/etc/iptables/dnscrypt.rules"
+      state=present
+      insertafter=EOF
+    notify:
+      - restart iptables
+    tags:
+      - dns
+      - iptables

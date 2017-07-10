@@ -1,0 +1,2 @@
+  - include: ../../base/handlers/main.yml
+  - include: dnsmasq.yml

@@ -1,0 +1,45 @@
+  - name: Install Wireshark
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - wireshark
+      - libcap2-bin
+    tags:
+      - gui
+      - wireshark
+
+  - name: Add wireshark group
+    group: 
+      name=wireshark
+      state=present
+    tags:
+      - gui
+      - wireshark
+
+  - name: Add user to wireshark group
+    user:
+      name="{{current_user}}"
+      state=present
+      groups=wireshark
+      append=yes
+    tags:
+      - gui
+      - wireshark
+
+  - name: Update dumpcap for wireshark groups
+    file:
+      path=/usr/bin/dumpcap
+      group=wireshark
+      mode=750
+    register: result_update_dumpcap
+    tags:
+      - gui
+      - wireshark
+
+  - name: Set network privileges for dumpcap
+    command: setcap cap_net_raw,cap_net_admin=eip /usr/bin/dumpcap
+    when: result_update_dumpcap|changed
+    tags:
+      - gui
+      - wireshark

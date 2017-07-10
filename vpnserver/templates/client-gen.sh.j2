@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ "$*" == "" ]; then
+    echo "Specify client certificate name."
+    exit 1
+fi
+
+# Setup
+VPN=/etc/openvpn
+ER=$VPN/easy-rsa
+cd $ER
+. $ER/vars
+
+# Generate the key
+$ER/build-key --batch $1
+
+# Wrap everything up
+CLIENT="$VPN/clients/$1"
+mkdir -p $CLIENT
+mv $ER/keys/$1* $CLIENT/
+cp $ER/keys/ca.crt $CLIENT/
+tar -zcvf $CLIENT/../$1.vpn-{{vpn_ca.name}}.tar.gz $CLIENT/*
+rm -rf $CLIENT
+
+# Notify success
+echo "Certificate for $1 under {{vpn_ca.name}} can be found in:"
+echo "  $VPN/clients/$1.vpn-{{vpn_ca.name}}.tar.gz"
+

@@ -1,0 +1,54 @@
+#!/bin/sh
+
+# Base iptables ruleset.
+# Dropped packets logged to /var/log/kern.log
+# Log entries prefixed with [iptables]
+# 
+
+IPTABLES="sudo /sbin/iptables"
+
+# Interfaces
+IF_LO=lo
+
+# Logging
+LOGLIMIT="2/s"
+LOGLIMITBURST="10"
+
+################################################################################
+
+# Reset
+$IPTABLES -X LOGDROP
+
+# Log drop chain
+$IPTABLES -N LOGDROP
+$IPTABLES -A LOGDROP -p tcp -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[iptables] TCP LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -p udp -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[iptables] UDP LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -p icmp -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[iptables] ICMP LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -f -m limit --limit $LOGLIMIT --limit-burst $LOGLIMITBURST -j LOG --log-prefix "[iptables] FRAGMENT LOGDROP: " --log-level warning
+$IPTABLES -A LOGDROP -j DROP
+
+################################################################################
+
+# Loopback
+$IPTABLES -t filter -I INPUT  -i $IF_LO -j ACCEPT
+$IPTABLES -t filter -I OUTPUT -o $IF_LO -j ACCEPT
+
+################################################################################
+
+# Log DNS failures
+$IPTABLES -A INPUT -p udp --sport 53 -j LOG --log-prefix "[iptables] DNS FAIL" --log-level warning
+$IPTABLES -A OUTPUT -p udp --dport 53 -j LOG --log-prefix "[iptables] DNS FAIL" --log-level warning
+
+# Log and drop packets that made it
+# Credit: http://www.linuxquestions.org/questions/linux-security-4/iptables-logging-385165/
+$IPTABLES -A INPUT -p tcp -j LOGDROP
+$IPTABLES -A INPUT -p udp -j LOGDROP
+$IPTABLES -A INPUT -p icmp -j LOGDROP
+$IPTABLES -A OUTPUT -p tcp -j LOGDROP
+$IPTABLES -A OUTPUT -p udp -j LOGDROP
+$IPTABLES -A OUTPUT -p icmp -j LOGDROP
+$IPTABLES -A FORWARD -p tcp -j LOGDROP
+$IPTABLES -A FORWARD -p udp -j LOGDROP
+$IPTABLES -A FORWARD -p icmp -j LOGDROP
+
+################################################################################

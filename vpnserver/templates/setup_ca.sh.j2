@@ -1,0 +1,10 @@
+# Configures OpenVPN CA
+# Assumes easy-rsa has been copied to /etc/openvpn/easy-rsa
+
+#!/bin/bash
+
+WD=/etc/openvpn/easy-rsa/
+cd $WD
+. $WD/vars
+$WD/clean-all
+$WD/build-ca --batch

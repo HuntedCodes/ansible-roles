@@ -1,0 +1,17 @@
+[Unit]
+Description=DNSCrypt
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+NonBlocking=true
+Restart=always
+RestartSec=10
+ExecStartPre=/bin/mkdir -p /run/dnscrypt
+ExecStart=/usr/local/sbin/dnscrypt-proxy \
+  --local-address=127.0.0.2:53 \
+  --resolver-name={{dnscrypt_regular}} \
+  --ephemeral-keys \
+  --user=dnscrypt

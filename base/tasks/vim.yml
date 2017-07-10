@@ -1,0 +1,26 @@
+  - name: Install vim
+    apt: name=vim state=present
+    tags:
+      - install
+      - apt
+      - vim
+
+  - name: Configure vim
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    template: src=vimrc.j2 dest=/home/{{current_user}}/.vimrc
+    tags:
+      - configure
+      - file
+      - vim
+
+  - name: Set vim as default editor
+    lineinfile: 
+      dest=/home/{{current_user}}/.bashrc
+      line="export EDITOR=\"/usr/bin/vim\""
+      state=present
+      create=True
+    tags:
+      - configure
+      - file
+      - vim

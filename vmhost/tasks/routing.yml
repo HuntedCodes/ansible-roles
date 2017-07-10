@@ -1,0 +1,10 @@
+  # Route to VPN clients via VPN gateway
+  - name: Set VPN client subnet route
+    lineinfile:
+      dest=/etc/systemd/network/{{item.interface}}.network
+      line="[Route]\nDestination=10.0.{{item.subnet}}.0/24\nGateway=10.0.{{item.server_subnet}}.{{item.server_host}}\n"
+      state=present
+    with_items: "{{vpn_gateways}}"
+    tags:
+      - vmhost
+      - routing

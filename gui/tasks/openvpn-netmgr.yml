@@ -1,0 +1,8 @@
+  - name: Install openvpn plugin for network manager
+    apt: 
+      name=network-manager-openvpn
+      state=present
+    tags:
+      - gui
+      - openvpn-netmgr
+

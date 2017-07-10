@@ -1,0 +1,19 @@
+  - name: Create iptables client rulesets (IPv4)
+    template:
+      src=iptables_client.j2
+      dest=/etc/iptables/client_{{ item.interface }}.rules
+      mode=0700
+    with_items: "{{if_external}}"
+    tags:
+      - client
+      - iptables
+
+  - name: Add iptables client rulesets to main script (IPv4)
+    lineinfile:
+      line="/etc/iptables/client_{{item.interface}}.rules"
+      dest=/etc/iptables/iptables
+      state=present
+    with_items: "{{if_external}}"
+    tags:
+      - client
+      - iptables

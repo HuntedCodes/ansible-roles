@@ -1,0 +1,8 @@
+  - name: Install vagrant
+    apt: 
+      name=vagrant
+      state=present
+    tags:
+      - vmhost
+      - vagrant
+

@@ -1,0 +1,6 @@
+  # Install and Configure
+  - include: bridges.yml
+  - include: routing.yml
+  - include: iptables.yml
+  - include: dnsmasq.yml
+  - include: kvm.yml

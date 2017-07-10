@@ -1,0 +1,32 @@
+  - name: Install ARM GNU toolchain
+    apt:
+      name={{item}}
+      state=present
+    with_items:
+      - gcc-arm-linux-gnueabi
+      - gcc-arm-linux-gnueabihf
+    tags:
+      - arm
+      - gnutoolchain
+
+  - name: Install ARM C libraries
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - libc6-dev-armhf-cross
+    tags:
+      - arm
+      - libraries
+
+  - name: Install QEMU ARM emulation
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - qemu-user-static
+      - qemu-arm-static
+      - qemu-system-arm
+    tags:
+      - arm
+      - qemu

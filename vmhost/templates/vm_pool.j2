@@ -1,0 +1,14 @@
+<pool type='logical'>
+  <name>vm_pool</name>
+  <capacity unit='bytes'>0</capacity>
+  <allocation unit='bytes'>0</allocation>
+  <available unit='bytes'>0</available>
+  <source>
+    <name>{{vm_volume_group}}</name>
+    <device path='{{vm_volume_device}}'/>
+    <format type='lvm2'/>
+  </source>
+  <target>
+    <path>/dev/{{vm_volume_group}}</path>
+  </target>
+</pool>

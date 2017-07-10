@@ -1,0 +1,15 @@
+  - name: Configure iptables VPN (IPv4)
+    template:
+      src=iptables_vpn.j2
+      dest=/etc/iptables/host_vpn_{{ item.interface }}.rules
+      mode=0700
+    with_items: "{{if_vpn_through}}"
+
+  - name:  Add VPN to iptables service
+    lineinfile:
+      line="/etc/iptables/host_vpn_{{item.interface}}.rules"
+      dest=/etc/iptables/iptables
+      state=present
+    with_items: "{{if_vpn_through}}"
+    notify:
+      - restart iptables

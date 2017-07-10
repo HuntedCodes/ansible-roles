@@ -1,0 +1,11 @@
+  # Aptitude Package Repositories
+  - include: repo_getdeb.yml
+
+  # Languages
+  - include: c.yml
+  - include: python3.yml
+  - include: ruby.yml
+ 
+  # Supporting
+  - include: jekyll.yml
+

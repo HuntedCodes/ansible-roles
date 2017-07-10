@@ -1,0 +1,3 @@
+  # Aptitude Package Repositories
+  - include: mirror.yml
+

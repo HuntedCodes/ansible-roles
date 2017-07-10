@@ -1,0 +1,6 @@
+  - include: directories.yml
+  - include: packages.yml
+  - include: git.yml
+  - include: iptables.yml
+  - include: ip6tables.yml
+  - include: vim.yml

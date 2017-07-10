@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# NAT iptables ruleset.
+# Masquerade on external interface.
+#
+
+IPTABLES="sudo /sbin/iptables"
+
+IF_NAT={{ item.interface }}
+
+################################################################################
+
+# NAT Interface
+$IPTABLES -t nat -A POSTROUTING -o $IF_NAT -j MASQUERADE
+

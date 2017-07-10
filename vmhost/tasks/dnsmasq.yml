@@ -1,0 +1,40 @@
+  - name: Install dnsmasq
+    apt:
+      name=dnsmasq
+      state=present
+    tags:
+      - vmhost
+      - dnsmasq
+
+  - name: Enable DHCP ranges
+    lineinfile:
+      dest=/etc/dnsmasq.conf
+      line="interface={{item.interface}}\ndhcp-range={{item.interface}},10.0.{{item.subnet}}.100,10.0.{{item.subnet}}.199,4h"
+      state=present
+    with_items: "{{vm_nets}}"
+    notify: restart dnsmasq
+    tags:
+      - vmhost
+      - dnsmasq
+
+  - name: Configure dnsmasq systemd service
+    template:
+      src=dnsmasq.service.j2
+      dest=/lib/systemd/system/dnsmasq.service
+      mode=644
+    with_items: "{{vm_nets}}"
+    notify: restart dnsmasq
+    tags:
+      - vmhost
+      - dnsmasq
+
+  - name: Start and enable dnsmasq services
+    service:
+      name={{item}}
+      state=started
+      enabled=yes
+    with_items:
+      - dnsmasq
+    tags:
+      - client
+      - dnsmasq

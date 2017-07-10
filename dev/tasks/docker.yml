@@ -1,0 +1,50 @@
+  - name: Add docker repo
+    apt_repository: repo='deb https://get.docker.io/ubuntu docker main'
+    register: result_repo_docker
+    tags:
+      - dev
+      - docker
+
+  - name: Add docker repo signing key
+    apt_key: 
+      keyserver=keyserver.ubuntu.com
+      id=36A1D7869245C8950F966E92D8576A8BA88D21E9
+      state=present
+    when: result_repo_docker | changed
+    notify: update apt
+    tags:
+      - dev
+      - docker
+
+  - name: Install docker and dependencies
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - lxc-docker
+    tags:
+      - dev
+      - docker
+
+  - name: Symlink the docker.io binary
+    file: 
+      src=/usr/bin/docker.io
+      dest=/usr/local/bin/docker
+      state=link
+      force=yes
+      owner="{{current_user}}"
+      group="{{current_user}}"
+    tags:
+      - dev
+      - docker
+
+  - name: Add user to docker group
+    user:
+      name="{{current_user}}"
+      state=present
+      groups=docker
+      append=yes
+    tags:
+      - dev
+      - docker
+

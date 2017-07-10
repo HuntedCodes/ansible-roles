@@ -1,0 +1,27 @@
+#!/bin/sh
+
+#
+# VM host routing from clients to external.
+#
+
+
+IPTABLES="sudo /sbin/iptables"
+
+# Interfaces
+IF_INT={{item.0.interface}}
+IF_EXT={{item.1}}
+CLIENT_NET=10.0.{{item.0.subnet}}.0/24
+
+################################################################################
+
+# Forward Clients to External
+$IPTABLES -t filter -I FORWARD -i $IF_INT -o $IF_EXT -s $CLIENT_NET -p tcp --sport 1024:65535 -j ACCEPT #All unprivileged TCP
+$IPTABLES -t filter -I FORWARD -i $IF_INT -o $IF_EXT -s $CLIENT_NET -p udp --sport 1024:65535 -j ACCEPT #All unprivileged UDP
+$IPTABLES -t filter -I FORWARD -i $IF_INT -o $IF_EXT -s $CLIENT_NET -p icmp --icmp-type 8 -j ACCEPT # Ping request
+
+# Forward External to Clients
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $CLIENT_NET -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $CLIENT_NET -p udp -m state --state RELATED -j ACCEPT
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $CLIENT_NET -p udp --sport 53 --dport 1024:65535 -j ACCEPT  # DNS
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $CLIENT_NET -p udp --sport 123 --dport 1024:65535 -j ACCEPT # NTP
+$IPTABLES -t filter -I FORWARD -i $IF_EXT -o $IF_INT -d $CLIENT_NET -p icmp --icmp-type 0 -j ACCEPT # Ping response

@@ -1,0 +1,21 @@
+  - name: Install ruby
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - ruby
+      - ruby-dev
+    tags:
+      - dev
+      - ruby
+
+  - name: Install ruby utilities
+    gem: 
+      name={{item}}
+      state=present
+      user_install=no
+    with_items:
+      - bundler
+    tags:
+      - dev
+      - ruby

@@ -1,0 +1,27 @@
+  - name: Create user directories
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    file:
+      path="{{item}}"
+      state=directory
+      mode=0700
+    with_items:
+      - /home/{{current_user}}/.config
+      - /home/{{current_user}}/.ssh
+      - /home/{{current_user}}/bin
+      - /home/{{current_user}}/data/
+      - /home/{{current_user}}/data/workspace
+    tags:
+      - base
+      - directory
+
+  - name: Create root directories
+    file:
+      path="{{item}}"
+      state=directory
+      mode=0700
+    with_items:
+      - /root/.ssh
+    tags:
+      - base
+      - directory

@@ -1,0 +1,15 @@
+  - name: Get user from $SUDO_USER
+    set_fact:
+      current_user: "{{ lookup('env','SUDO_USER') }}"
+    when: lookup('env','SUDO_USER') != ''
+    tags:
+      - vars
+      - user
+
+  - name: Get user from $USER
+    set_fact:
+      current_user: "{{ lookup('env','USER') }}"
+    when: lookup('env','SUDO_USER') == ''
+    tags:
+      - vars
+      - user

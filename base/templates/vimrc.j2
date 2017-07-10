@@ -1,0 +1,153 @@
+
+"******** Leader Key Mapping  ******** 
+
+let mapleader=","
+
+"*** Clear the distracting search highlighting
+nnoremap <leader><space> :noh<cr>
+
+
+"******** Remap Existing Mapped Keys  ******** 
+
+"*** One less key to hit for commands
+nnoremap ; :
+
+"*** Turn help to escape, no accidental hit
+inoremap <F1> <ESC>
+nnoremap <F1> <ESC>
+noremap <F1> <ESC>
+
+"*** Unmap arrow keys, no crutch 
+nnoremap <up> <nop>
+nnoremap <down> <nop>
+nnoremap <left> <nop>
+nnoremap <right> <nop>
+inoremap <up> <nop>
+inoremap <down> <nop>
+inoremap <left> <nop>
+inoremap <right> <nop>
+
+" Navigate by displayed lines, instead of newlines
+"nnoremap j gj
+"nnoremap k gk
+
+" Easier split nagivation
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+nnoremap <space> za
+
+
+"******** Appearance  ******** 
+set t_Co=256   " enable 256 colors
+syntax on
+colorscheme delek
+filetype indent plugin on
+set guifont=courier_new
+highlight Folded ctermfg=DarkBlue ctermbg=Black
+set hlsearch        " highlight search result
+set showmatch       " show matching parenthesis
+set laststatus=2    " show status even without a split
+
+
+"******** Folding ********
+set foldmethod=indent
+set foldlevel=99
+
+
+"******** Python/PEP8  ******** 
+au BufNewFile,BufRead *.py
+    \ set textwidth=79  " lines longer than 79 columns will be broken
+    \ set shiftwidth=4  " operation >> indents 4 columns; << unindents 4 columns
+    \ set tabstop=4     " a hard TAB displays as 4 columns
+    \ set expandtab     " insert spaces when hitting TABs
+    \ set softtabstop=4 " insert/delete 4 spaces when hitting a TAB/BACKSPACE
+    \ set shiftround    " round indent to multiple of 'shiftwidth'
+    \ set autoindent    " align the new line indent with the previous line
+    \ let python_highlight_all = 1
+
+
+"******** Web code **********
+au BufNewFile,BufRead *.js, *.html, *.css
+    \ set tabstop=2
+    \ set softtabstop=2
+    \ set shiftwidth=2
+
+
+"******** Other Settings  ******** 
+set number          " absolute line numbering
+set undofile        " undo files to undo even after closing and reopening
+set incsearch       " incremental searches, refined while typing
+set fileformat=unix " always use unix line breaks
+
+
+"******** Automatic refresh of .vimrc  ******** 
+augroup myvimrc
+    au!
+    au BufWritePost .vimrc,_vimrc,vimrc,.gvimrc,_gvimrc,gvimrc so $MYVIMRC | if has('gui_running') | so $MYGVIMRC | endif
+augroup END
+
+
+"******** Plugins ******** 
+
+"*** Plugin manager: vim-plug if empty(glob("~/.vim/autoload/plug.vim"))
+if empty(glob("~/.vim/autoload/plug.vim"))
+    execute '!curl -fLo ~/.vim/autoload/plug.vim https://raw.github.com/junegunn/vim-plug/master/plug.vim --create-dirs'
+endif
+
+call plug#begin('~/.vim/plugged')
+
+"*** Interface plugins
+Plug 'scrooloose/nerdtree'   " Folder structure navigation and manipulation 
+Plug 'vim-airline/vim-airline' " Awesome statusbar 
+Plug 'mileszs/ack.vim'       " Replacement for grep, based on ack tool (ack-grep)
+
+"*** Editing plugins
+Plug 'msanders/snipmate.vim' " Snippets support, expanding abbreviated text
+
+"*** Development plugins
+Plug 'tpope/vim-fugitive'    " Integrates git
+Plug 'Valloric/YouCompleteMe' " autocompletion
+
+"*** Python plugins
+Plug 'klen/python-mode'      " Super omfg python library plugin (lint, refactor, doc, +++)
+Plug 'nvie/vim-flake8'       " Combines pyflakes and pep8 for code quality check
+
+call plug#end()
+
+
+"******* NERDTree config ********
+
+" Auto start
+autocmd vimenter * NERDTree
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+
+" Quick toggle
+map <C-n> :NERDTreeToggle<CR>
+
+
+"******* Airline config *******
+
+" Theme
+let g:airline_theme = 'term'
+
+" Integrate powerline symbols.
+let g:airline_powerline_fonts = 1
+
+
+"******* Python Mode config ******
+let g:pymode_rope = 0
+ 
+
+"******* virtualenv support ******
+py << EOF
+import os
+import sys
+if 'VIRTUAL_ENV' in os.environ:
+  project_base_dir = os.environ['VIRTUAL_ENV']
+  activate_this = os.path.join(project_base_dir, 'bin/activate_this.py')
+  execfile(activate_this, dict(__file__=activate_this))
+EOF
+

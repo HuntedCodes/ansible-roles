@@ -1,0 +1,18 @@
+  - name: Install openvpn
+    apt: name=openvpn state=present
+    tags:
+      - vpnclient
+      - openvpn
+
+  - name: Make home openvpn directory
+    sudo: yes
+    sudo_user: "{{current_user}}"
+    file:
+      path="{{item}}"
+      state=directory
+      mode=0700
+    with_items:
+      - /home/{{current_user}}/.openvpn
+    tags:
+      - vpnclient
+      - openvpn

@@ -1,0 +1,26 @@
+  - name: Install openvpn
+    apt: name={{item}} state=present
+    with_items:
+      - openvpn
+    tags:
+      - vpnserver
+      - openvpn
+
+  - name: Copy openvpn server configuration
+    template:
+      src=openvpn_server.conf.j2
+      dest=/etc/openvpn/{{vpn_ca.name}}-server.conf
+      mode=0600
+    register: server_config
+    tags:
+      - vpnserver
+      - openvpn
+
+  - name: Restart openvpn service
+    service:
+      name=openvpn@{{vpn_ca.name}}-server
+      state=restarted
+      enabled=yes
+    tags:
+      - vpnserver
+      - openvpn

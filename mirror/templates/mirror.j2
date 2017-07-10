@@ -1,0 +1,28 @@
+#!/bin/sh
+
+
+SRC_DEV={{mirror_src_dev}}
+SRC_DIR={{mirror_src_dir}}
+
+DST_DEV={{mirror_dst_dev}}
+DST_DIR={{mirror_dst_dir}}
+
+LOGFILE=/var/log/mirror
+
+
+echo "[*] Mounting primary drive." >> $LOGFILE
+mount $SRC_DEV $SRC_DIR
+echo "[*] Mounted." >> $LOGFILE
+
+echo "[*] Mounting backup drive." >> $LOGFILE
+mount $DST_DEV $DST_DIR
+echo "[*] Mounted." >> $LOGFILE
+
+echo "" >> /var/log/mirror
+
+rsync -v -a -r --delete --log-file=$LOGFILE $SRC_DIR $DST_DIR
+
+echo "[*] Unmounting backup drive." >> $LOGFILE
+umount $DST_DIR
+echo "[*] Unmounted." >> $LOGFILE
+echo "" >> $LOGFILE

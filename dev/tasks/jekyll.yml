@@ -1,0 +1,23 @@
+  - name: Install Jekyll and dependencies
+    apt: 
+      name={{item}}
+      state=present
+    with_items:
+      - nodejs
+      - jekyll
+      - cmake
+    tags:
+      - dev
+      - jekyll
+
+  - name: Install Jekyll plugins
+    gem: 
+      name={{item}}
+      state=present
+      user_install=no
+    with_items:
+      - github-pages
+    tags:
+      - dev
+      - jekyll
+

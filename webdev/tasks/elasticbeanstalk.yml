@@ -1,0 +1,10 @@
+  - name: Install AWS Elastic Beanstalk CLI
+    pip: 
+      name=awsebcli
+      state=latest
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    tags:
+      - install
+      - pip
+      - ebcli
+      - elasticbeanstalk

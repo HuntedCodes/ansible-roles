@@ -1,0 +1,58 @@
+  - name: Install binary analysis tools from aptitude
+    apt:
+      name={{item}}
+      state=present
+    with_items:
+      - hexedit
+    tags:
+      - analysis
+      - binary
+
+  - name: Install binary analysis tools from pip
+    pip:
+      name={{item}}
+      state=present
+    with_items:
+      - capstone
+    tags:
+      - analysis
+      - binary
+
+  - name: Install Krakatau Java RCE Tools
+    git:
+      repo=https://github.com/Storyyeller/Krakatau
+      dest=/usr/local/src/krakatau
+      clone=yes
+      update=no
+    tags:
+      - analysis
+      - krakatau
+
+  - name: Give Krakatau to current user
+    sudo: yes
+    file:
+      path=/usr/local/src/krakatau
+      owner="{{current_user}}"
+      group="{{current_user}}"
+      recurse=yes
+      state=directory
+    tags:
+      - analysis
+      - krakatau
+
+  - name: Set Krakatau links in /usr/local/bin/
+    file:
+      src=/usr/local/src/krakatau/{{item}}
+      dest=/usr/local/bin/{{item}}
+      owner="{{current_user}}"
+      group="{{current_user}}"
+      state=link
+    with_items:
+      - assemble.py
+      - disassemble.py
+      - decompile.py
+    tags:
+      - analysis
+      - krakatau
+
+

@@ -1,0 +1,9 @@
+  - name: Install wireless tools
+    apt:
+      name={{item}}
+      state=present
+    with_items:
+      - iw
+    tags:
+      - wifi
+      - packages

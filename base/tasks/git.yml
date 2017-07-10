@@ -1,0 +1,26 @@
+  - name: Install git
+    apt: 
+      name=git
+      state=present
+    tags:
+      - base
+      - git
+
+  - name: Configure git username
+    sudo: yes
+    sudo_user: "{{ current_user }}"
+    shell: git config --global user.name "{{git_user}}"
+    when: git_user is defined
+    tags:
+      - base
+      - git
+
+  - name: Configure git email address
+    sudo: yes
+    sudo_user: "{{ current_user }}"
+    shell: git config --global user.email "{{git_email}}"
+    when: git_email is defined
+    tags:
+      - base
+      - git
+

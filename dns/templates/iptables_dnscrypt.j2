@@ -1,0 +1,28 @@
+#
+# DNSCrypt iptables ruleset.
+# One resolver for WiFi interface, one for VPN interface.
+# Block WiFi resolver on VPN interface, and vice versa.
+#
+
+#!/bin/sh
+
+IPTABLES="sudo /sbin/iptables"
+
+# Interfaces
+IF_ETH=eth0
+IF_WIFI=wlan0
+IF_VPN=tun0
+
+# Resolver IPv4 Addresses
+IP_REG_RESOLVER={{ regular_resolver_ip.stdout }}
+IP_VPN_RESOLVER={{ vpn_resolver_ip.stdout }}
+
+################################################################################
+
+# Allow Regular Resolvers on al Interfaces
+$IPTABLES -t filter -I INPUT  -s $IP_REG_RESOLVER -p udp -j ACCEPT
+$IPTABLES -t filter -I OUTPUT -d $IP_REG_RESOLVER -p udp -j ACCEPT
+$IPTABLES -t filter -I INPUT  -s $IP_VPN_RESOLVER -p udp -j ACCEPT
+$IPTABLES -t filter -I OUTPUT -d $IP_VPN_RESOLVER -p udp -j ACCEPT
+
+################################################################################

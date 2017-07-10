@@ -1,0 +1,73 @@
+  - name: Create iptables directories
+    sudo: yes
+    file:
+      path="{{item}}"
+      state=directory
+      mode=0700
+    with_items:
+      - /etc/iptables
+    tags:
+      - base
+      - iptables
+
+  - name: Check main iptables script (IPv4)
+    stat: path=/etc/iptables/iptables
+    register: iptables_service
+    tags:
+      - base
+      - iptables
+
+  - name: Create main iptables script (IPv4)
+    template:
+      src=iptables.j2
+      dest=/etc/iptables/iptables
+      mode=0700
+      owner=root
+      group=root
+    when: iptables_service.stat.exists == False
+    tags:
+      - base
+      - iptables
+
+  - name: Create iptables base ruleset
+    template:
+      src=iptables_base.j2
+      dest=/etc/iptables/base.rules
+      mode=0700
+    tags:
+      - base
+      - iptables
+
+  - name: Add iptables base ruleset to main script (IPv4)
+    lineinfile:
+      line="{{item}}"
+      dest=/etc/iptables/iptables
+      state=present
+    with_items:
+      - "/etc/iptables/base.rules"
+    register: result
+    tags:
+      - base
+      - iptables
+
+  - name: Add iptables services
+    template:
+      src=iptables.service.j2
+      dest=/etc/systemd/system/iptables.service
+      mode=0644
+    notify:
+      - reload systemd daemon
+    tags:
+      - client
+      - iptables
+
+  - name: Start iptables services
+    service:
+      name={{item}}
+      state=started
+      enabled=yes
+    with_items:
+      - iptables
+    tags:
+      - client
+      - iptables

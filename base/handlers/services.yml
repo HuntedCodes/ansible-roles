@@ -1,0 +1,21 @@
+  - name: reload systemd daemon
+    command: /bin/systemctl daemon-reload
+    tags:
+      - base
+      - systemd
+
+  - name: restart NetworkManager
+    service:
+      name=network-manager
+      state=restarted
+    tags:
+      - base
+      - network-manager
+
+  - name: restart networking
+    service:
+      name=networking
+      state=restarted
+    tags:
+      - base
+      - networking
